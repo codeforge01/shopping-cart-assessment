@@ -55,6 +55,7 @@ curl -X PUT http://localhost:3000/carts/123/items/1 \
 - **In-Memory Store**: As requested, data persistence is maintained in-memory using a standard Javascript `Map`. 
 - **Money Representation**: Floating-point math in Javascript is notorious for rounding errors (e.g., `0.1 + 0.2 =  0.30000000000000004`). We avoid this by representing money in the smallest currency denomination (cents) using integers, accompanied by a currency ISO string.
 - **Cart Sessioning via URL Params**: Instead of a single ephemeral global cart, I opted for a `cartId` path parameter (e.g., `/carts/:cartId/...`). This closely resembles real-world guest checkouts where a `cartId` is stored in cookies/local storage.
+- **Extensibility via Metadata**: The cart item payload accepts a `metadata` object (e.g., `{ color: "red" }`). This provides flexibility for storing item-specific variations or attributes without altering the core database schema.
 
 ## Trade-Offs & Edge Cases handled
 

@@ -1,13 +1,9 @@
 import { Cart, CartItem, Product } from './types';
 import { ProductRepository } from './product.repository';
 
-// In-memory data store for carts
 const carts = new Map<string, Cart>();
 
 export class CartService {
-  /**
-   * Retrieves a cart by ID. If it doesn't exist, initializes an empty cart.
-   */
   public getOrCreateCart(cartId: string): Cart {
     if (!carts.has(cartId)) {
       carts.set(cartId, {
@@ -20,9 +16,13 @@ export class CartService {
     return carts.get(cartId)!;
   }
 
-  /**
-   * Adds an item to the cart. Aggregates quantity if the product is already in the cart.
-   */
+  public getCart(cartId: string): Cart {
+    if (!carts.has(cartId)) {
+      throw new Error(`Cart with ID ${cartId} not found`);
+    }
+    return carts.get(cartId)!;
+  }
+
   public addItem(cartId: string, productId: number, quantity: number, metadata: Record<string, unknown> = {}): Cart {
     if (quantity <= 0) {
       throw new Error('Quantity must be greater than 0');
@@ -63,14 +63,17 @@ export class CartService {
    * Removes a product entirely from the cart.
    */
   public removeItem(cartId: string, productId: number): Cart {
-    const cart = this.getOrCreateCart(cartId);
+    const cart = this.getCart(cartId);
+    const existingItem = cart.items.find(item => item.productId === productId);
+    
+    if (!existingItem) {
+      throw new Error(`Cart item with Product ID ${productId} not found in cart`);
+    }
+
     cart.items = cart.items.filter(item => item.productId !== productId);
     return this.recalculateTotals(cart);
   }
 
-  /**
-   * Formally updates the quantity of a specific cart item.
-   */
   public updateQuantity(cartId: string, productId: number, quantity: number): Cart {
     if (quantity < 0) {
       throw new Error('Quantity cannot be negative');
@@ -80,7 +83,7 @@ export class CartService {
       return this.removeItem(cartId, productId);
     }
 
-    const cart = this.getOrCreateCart(cartId);
+    const cart = this.getCart(cartId);
     const existingItem = cart.items.find(item => item.productId === productId);
 
     if (!existingItem) {
@@ -93,18 +96,13 @@ export class CartService {
     return this.recalculateTotals(cart);
   }
 
-  /**
-   * Clears all items in the cart.
-   */
+
   public clearCart(cartId: string): Cart {
     const cart = this.getOrCreateCart(cartId);
     cart.items = [];
     return this.recalculateTotals(cart);
   }
 
-  /**
-   * Internal helper to calculate cart totals based on its items.
-   */
   private recalculateTotals(cart: Cart): Cart {
     let totalAmount = 0;
     let totalQuantity = 0;

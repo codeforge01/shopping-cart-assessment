@@ -6,9 +6,12 @@ export class CartController {
   public getCart = (req: Request, res: Response) => {
     const cartId = req.params.cartId as string;
     try {
-      const cart = cartService.getOrCreateCart(cartId);
+      const cart = cartService.getCart(cartId);
       res.json(cart);
     } catch (error: any) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ error: error.message });
+      }
       res.status(500).json({ error: error.message });
     }
   };
@@ -64,6 +67,9 @@ export class CartController {
       const updatedCart = cartService.removeItem(cartId, Number(productId));
       res.json(updatedCart);
     } catch (error: any) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ error: error.message });
+      }
       res.status(500).json({ error: error.message });
     }
   };
@@ -75,6 +81,9 @@ export class CartController {
       const updatedCart = cartService.clearCart(cartId);
       res.json(updatedCart);
     } catch (error: any) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ error: error.message });
+      }
       res.status(500).json({ error: error.message });
     }
   };
